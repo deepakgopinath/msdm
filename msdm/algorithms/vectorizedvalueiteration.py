@@ -24,6 +24,9 @@ class VectorizedValueIteration(Plans):
         nt = mdp.nonterminal_state_vec
         am = mdp.action_matrix
 
+        if self.entreg:
+            log_default_policy = np.log(1/am.sum(axis=-1, keepdims=True))
+
         #available actions - add -inf if it is not available
         aa = am.copy()
         assert np.all(aa[np.nonzero(aa)] == 1) # If this is true, then the next line is unnecessary.
@@ -35,7 +38,7 @@ class VectorizedValueIteration(Plans):
         for i in range(self.iters):
             q = np.einsum("san,san->sa", tf, rf + self.dr * v)
             if self.entreg:
-                v = self.temp * logsumexp((1 / self.temp) * q + np.log(am),
+                v = self.temp * logsumexp((1 / self.temp) * q + log_default_policy + np.log(am),
                                           axis=-1)
                 v[terminal_sidx] = 0 #terminal states are always 0 reward
             else:
