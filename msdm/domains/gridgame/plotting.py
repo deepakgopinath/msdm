@@ -14,7 +14,7 @@ import matplotlib.cm as cmx
 import matplotlib.patheffects as path_effects
 from matplotlib import animation 
 
-from msdm.core.problemclasses.stochasticgame.policy.tabularpolicy import TabularMultiAgentPolicy
+from msdm.core.problemclasses.stochasticgame.policy.tabularpolicy import TabularMultiagentPolicy
 from msdm.domains.gridgame.tabulargridgame import TabularGridGame
 from msdm.core.assignment.assignmentmap import AssignmentMap
 
@@ -169,8 +169,6 @@ class GridGamePlotter:
 
     def plot_absorbing_states(self, markersize=30, featurecolors=None):
         for i,goal in enumerate(self.gg.goals):
-            # sdict = dict(zip([v.name for v in s.variables], s.values))
-            # x, y = sdict['x'], sdict['y']
             x, y = goal['x'], goal['y']
             if len(goal["owners"]) == 1:
                 marker_color = self.agent_colors[goal["owners"][0]]
@@ -428,7 +426,7 @@ class GridGamePlotter:
         return self
 
         
-    def plot_policy(self, policy: TabularMultiAgentPolicy) -> "GridGamePlotter":
+    def plot_policy(self, policy: TabularMultiagentPolicy) -> "GridGamePlotter":
         
         for agent in policy.single_agent_policies:
             continue 

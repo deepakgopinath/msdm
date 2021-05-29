@@ -3,3 +3,8 @@ from msdm.algorithms.laostar import LAOStar
 from msdm.algorithms.lrtdp import LRTDP
 from msdm.algorithms.policyiteration import PolicyIteration
 from msdm.algorithms.search import BreadthFirstSearch, AStarSearch
+from msdm.algorithms.multiagentvalueiteration import TabularMultiagentValueIteration
+from msdm.algorithms.multiagentqlearning import TabularMultiagentQLearner
+from msdm.algorithms.nashq import TabularNashQLearner
+from msdm.algorithms.friendfoeq import TabularFriendFoeQLearner
+from msdm.algorithms.correlatedq import TabularCorrelatedQLearner

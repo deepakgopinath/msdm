@@ -7,13 +7,28 @@ import numpy as np
 
 
 class GridGameAnimator(GridGamePlotter):
+    """
+    Does basic animations of trajectorys to the TabularGridGame environment 
+    """
     
     def __init__(self, gg: TabularGridGame, figure:plt.Figure, ax: plt.Axes):
         super().__init__(gg,ax)
         self.figure = figure
         
     def animate_trajectory(self,trajectory,interval=20,easing=True,interp_factor=20):
-        stateTraj = trajectory["stateTraj"]
+        """
+        Generates a matplotlib animation object for a given trajectory
+        
+        inputs:
+        ::trajectory:: Result object from the policy's run_on function 
+        ::interval:: time between rendering of frames in the animation
+        ::easing:: boolean determining whether or not to use easing (interpolating extra frames for smoother movement)
+        ::interp_factor:: number of smoothing frames to add between each frame 
+        
+        output:
+        ::anim:: matplotlib FuncAnimation object 
+        """
+        stateTraj = trajectory.state_traj
         if easing:
             stateTraj = self.state_trajectory_easing(stateTraj,interp_factor)
             
@@ -31,6 +46,16 @@ class GridGameAnimator(GridGamePlotter):
         return anim
     
     def state_trajectory_easing(self,stateTraj,interp_factor=20):
+        """
+        Uses linear interpolation to add frames between states. Makes the animation much smoother 
+        
+        inputs:
+        ::stateTraj:: list of states in the trajectory 
+        ::interp_factor:: number of frames to add between each state 
+        
+        outputs:
+        new_frames: new list of states, with smoothed states added in 
+        """
         new_frames = []
         for i in range(len(stateTraj)-1):
             init_pos = stateTraj[i]

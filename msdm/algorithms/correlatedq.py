@@ -1,8 +1,8 @@
 from msdm.core.algorithmclasses import Result
-from msdm.algorithms.multiagentqlearning import TabularMultiAgentQLearner
+from msdm.algorithms.multiagentqlearning import TabularMultiagentQLearner
 from msdm.core.problemclasses.stochasticgame import TabularStochasticGame
 from msdm.core.assignment.assignmentmap import AssignmentMap
-from msdm.core.problemclasses.stochasticgame.policy.tabularpolicy import TabularMultiAgentPolicy, SingleAgentPolicy
+from msdm.core.problemclasses.stochasticgame.policy.tabularpolicy import TabularMultiagentPolicy, SingleAgentPolicy
 from typing import Iterable
 import itertools 
 import copy
@@ -15,18 +15,17 @@ import numpy as np
 from scipy.optimize import linprog
 
 
-class CorrelatedQLearner(TabularMultiAgentQLearner):
+class TabularCorrelatedQLearner(TabularMultiagentQLearner):
     
     def __init__(self,learning_agents: Iterable,
                  other_policies:dict,num_episodes=200,
                  learning_rate=.1,discount_rate=1.0,
                  epsilon=0.0,epsilon_decay=1.0,
-                 default_q_value=0.0,objective_func="Utilitarian",show_progress=False,alg_name="Correlated Q-Learning",
-                render=False,render_from=0): 
+                 default_q_value=0.0,objective_func="Utilitarian",show_progress=False,alg_name="Correlated Q-Learning"): 
         super().__init__(learning_agents,other_policies,num_episodes,
                         learning_rate,discount_rate,epsilon,epsilon_decay,
                         default_q_value,all_actions=True,
-                        show_progress=show_progress,alg_name=alg_name,render=render,render_from=render_from)
+                        show_progress=show_progress,alg_name=alg_name)
         if objective_func == "Utilitarian":
             self.objective_func =  self.utilitarian_Q
         elif objective_func == "Egalitarian":

@@ -5,14 +5,14 @@ from copy import copy
 import sparse
 from tqdm import tqdm
 
-from msdm.core.problemclasses.stochasticgame.policy.policy import Policy, MultiAgentPolicy
+from msdm.core.problemclasses.stochasticgame.policy.policy import Policy, MultiagentPolicy
 from msdm.core.problemclasses.stochasticgame import TabularStochasticGame
 
 from msdm.core.assignment.assignmentmap import AssignmentMap
 from msdm.core.distributions import DiscreteFactorTable, Distribution
 from functools import reduce
 
-class TabularMultiAgentPolicy(MultiAgentPolicy):
+class TabularMultiagentPolicy(MultiagentPolicy):
     """
     Class to represent multiple agent policies combined together
     """
@@ -31,11 +31,7 @@ class TabularMultiAgentPolicy(MultiAgentPolicy):
         self.single_agent_policies = single_agent_policies 
         self.discount_rate = discount_rate
         self.show_progress = show_progress
-
-    def evaluate_on(self, problem: TabularStochasticGame) -> Mapping:
-        # do policy evaluation
-        raise NotImplementedError
-
+    
     def joint_action_dist(self, s) -> Distribution:
         adists = []
         for agent in self._policydict[s]:
@@ -44,116 +40,7 @@ class TabularMultiAgentPolicy(MultiAgentPolicy):
             adists.append(adist)
         adists = reduce(lambda a, b: a & b, adists)
         return adists
-    
-    def projected_Q(self,agent_name,q_matrix,weight_matrix,initial_state):
-        """
-        Computes the Q-values for each position(x,y coordinate an agent can occupy) in the problem. Averages over the q-values for all states including the agent in that position using the weight_matrix to determine weighting(usually the occupancy distribution for the poicy and enviroment).
-        
-        inputs: 
-        ::agent_name:: string representing the name of the agent 
-        ::q_matrix:: numpy matrix of size (num_states,num_actions) representing q_values for each state,action pair(not joint actions).
-        ::weight_matrix:: matrix of size (num_states,num_states) used to weight the average across states
-        
-        outputs: 
-        ::proj_q_matrix:: a matrix of size (num_positions,num_actions) representing the projected Q values for each position
-        """
-        indiv_actions = self.single_agent_policies[agent_name]._actions
-        proj_q_matrix = np.zeros((len(self.problem.position_list),len(indiv_actions)))
-        initial_state_occupancy = weight_matrix[self._states.index(initial_state)]
-        proj_q_vals = {position:AssignmentMap() for position in self.problem.position_list}
-        for position in self.problem.position_list:
-            for action in indiv_actions:
-                proj_q_vals[position][action] = 0.0
-                
-        if self.show_progress:
-            configs = enumerate(tqdm(self._states,desc="Calculating Projected Q-Values"))
-        else:
-            configs = enumerate(self._states)
-            
-        for si, state in configs:
-            if self.problem.is_terminal(state):
-                continue
-            agent_position = (state[agent_name]["x"],state[agent_name]["y"])
-            if not self.single_agent_policies[agent_name].all_actions:
-                for ai,action in enumerate(indiv_actions):
-                    q_val = q_matrix[si][ai]
-                    projected_val = q_val*initial_state_occupancy[si]
-                    proj_q_vals[agent_position][action] += projected_val
-            else:
-                for ai, action in enumerate(self._joint_actions):
-                    agent_action = action[agent_name]
-                    q_val = q_matrix[si][ai]
-                    projected_val = q_val*initial_state_occupancy[si]
-                    proj_q_vals[agent_position][agent_action] += projected_val
-        for pi, position in enumerate(self.problem.position_list):
-            for ai,action in enumerate(indiv_actions):
-                proj_q_matrix[pi][ai] = proj_q_vals[position][action]
-        return proj_q_matrix
-    
-    def projected_V(self,agent_name,q_matrix,weight_matrix,initial_state):
-        """
-        Uses the projected_Q functions to compute the projected values
-        """
-        proj_q = self.projected_Q(agent_name,q_matrix,weight_matrix,initial_state)
-        proj_v = np.zeros((len(self.problem.position_list)))
-        for i,position in enumerate(proj_q):
-            proj_v[i] = np.max(position)
-        return proj_v
-            
-    def construct_state(self,positions):
-        """
-        Converts Hashable[agent_name -> tuple(x,y)] into 
-        a state object
-        """
-        state = {} 
-        for agent in positions:
-            state[agent] = {} 
-            state[agent]["name"] = agent 
-            state[agent]["type"] = "agent"
-            state[agent]["x"] = positions[agent][0]
-            state[agent]["y"] = positions[agent][1]
-        return state
-    
-    def positionMapping(self,agent_name,q_matrix,weight_matrix,initial_state):
-        """
-        Computes the projected Values, and then turns them into 
-        a dictionary from position -> value for visualization 
-        """
-        projected_vals = self.projected_V(agent_name,q_matrix,weight_matrix,initial_state)
-        mapping = {}
-        for i,position in enumerate(self.problem.position_list):
-            mapping[position] = projected_vals[i]
-        return mapping 
-    
-    def positionActionMapping(self,agent_name,q_matrix,weight_matrix,initial_state):
-        """
-        Computes the projected Q-values, and then turns them into 
-        a dictionary from position,action -> value for visualization 
-        """
-        projected_q_vals = self.projected_Q(agent_name,q_matrix,weight_matrix,initial_state)
-        mapping = AssignmentMap()
-        for i,position in enumerate(self.problem.position_list):
-            mapping[position] = AssignmentMap() 
-            for j,action in enumerate(self.single_agent_policies[agent_name]._actions):
-                mapping[position][action] = projected_q_vals[i][j]
-        return mapping
-    
-    def weightMapping(self,agent_name,weight_matrix,initial_state):
-        weights = weight_matrix[self._states.index(initial_state)]
-        positionMap = AssignmentMap()
-        for si, weight in enumerate(weights):
-            state = self._states[si]
-            if self.problem.is_terminal(state):
-                continue
-            agent_position = (state[agent_name]["x"],state[agent_name]["y"])
-            if agent_position in positionMap:
-                positionMap[agent_position] += weight
-            else:
-                positionMap[agent_position] = weight
-        for position in positionMap:
-            positionMap[position] = positionMap[position]
-        return positionMap
-    
+       
     @property
     def occupancy_matrix(self):
         """
@@ -183,8 +70,6 @@ class TabularMultiAgentPolicy(MultiAgentPolicy):
             self._occupancy_matrix = occupancy_matrix 
             return self._occupancy_matrix
     
-        
-        
     @property     
     def joint_policy_matrix(self):
         """

@@ -1,8 +1,8 @@
 from msdm.core.algorithmclasses import Result
-from msdm.algorithms.multiagentqlearning import TabularMultiAgentQLearner
+from msdm.algorithms.multiagentqlearning import TabularMultiagentQLearner
 from msdm.core.problemclasses.stochasticgame import TabularStochasticGame
 from msdm.core.assignment.assignmentmap import AssignmentMap
-from msdm.core.problemclasses.stochasticgame.policy.tabularpolicy import TabularMultiAgentPolicy, SingleAgentPolicy
+from msdm.core.problemclasses.stochasticgame.policy.tabularpolicy import TabularMultiagentPolicy, SingleAgentPolicy
 from tqdm import tqdm
 import itertools 
 from typing import Iterable
@@ -11,18 +11,18 @@ from cvxopt.modeling import op
 from cvxopt.modeling import variable
 import cvxopt
 
-class FriendFoeQ(TabularMultiAgentQLearner):
+class TabularFriendFoeQLearner(TabularMultiagentQLearner):
     
     def __init__(self,learning_agents: Iterable,
                  friends:dict,foes:dict,
                  other_policies:dict,num_episodes=200,
                  learning_rate=.1,discount_rate=1.0,
                  epsilon=0.0,epsilon_decay=1.0,default_q_value=0.0,
-                 show_progress=False,alg_name="FFQ-Learning",render=False,render_from=0): 
+                 show_progress=False,alg_name="FFQ-Learning"): 
         super().__init__(learning_agents,other_policies,num_episodes,
                         learning_rate,discount_rate,epsilon,epsilon_decay,default_q_value,
                          all_actions=True,show_progress=show_progress,
-                         alg_name=alg_name,render=render,render_from=render_from)
+                         alg_name=alg_name)
         self.friends = friends 
         self.foes = foes 
         self.equilibria = []

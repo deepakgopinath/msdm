@@ -1,8 +1,8 @@
 from msdm.core.algorithmclasses import Result
-from msdm.algorithms.multiagentqlearning import TabularMultiAgentQLearner
+from msdm.algorithms.multiagentqlearning import TabularMultiagentQLearner
 from msdm.core.problemclasses.stochasticgame import TabularStochasticGame
 from msdm.core.assignment.assignmentmap import AssignmentMap
-from msdm.core.problemclasses.stochasticgame.policy.tabularpolicy import TabularMultiAgentPolicy, SingleAgentPolicy
+from msdm.core.problemclasses.stochasticgame.policy.tabularpolicy import TabularMultiagentPolicy, SingleAgentPolicy
 from typing import Iterable
 from tqdm import tqdm
 import nashpy as nash
@@ -14,17 +14,17 @@ import warnings
 Use prebuilt software for computing nash equilibria?(Gambit can do N>2 players, but requires separate installation)
 """
 # Use nashpy for now 
-class NashQLearner(TabularMultiAgentQLearner):
+class TabularNashQLearner(TabularMultiagentQLearner):
     
     def __init__(self,learning_agents: Iterable,
                  other_policies:dict,num_episodes=200,
                  learning_rate=.1,discount_rate=1.0,
                  epsilon=0.0,epsilon_decay=1.0,default_q_value=0.0,
-                 show_progress=False,alg_name="Nash Q-Learning",render=False,render_from=0):
+                 show_progress=False,alg_name="Nash Q-Learning"):
         super().__init__(learning_agents,other_policies,num_episodes,
                         learning_rate,discount_rate,epsilon,epsilon_decay,
                         default_q_value,all_actions=True,
-                        show_progress=show_progress,alg_name=alg_name,render=render,render_from=render_from)
+                        show_progress=show_progress,alg_name=alg_name)
     
     def update(self,agent_name,actions,q_values,joint_rewards,curr_state,next_state,problem):
         if problem.is_terminal(next_state):

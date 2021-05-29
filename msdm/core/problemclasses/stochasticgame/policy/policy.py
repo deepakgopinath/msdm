@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
+from msdm.core.algorithmclasses import Result
 from msdm.core.problemclasses.stochasticgame import StochasticGame
 from msdm.core.distributions import Distribution
 
-class MultiAgentPolicy(ABC):
+class MultiagentPolicy(ABC):
     
     @abstractmethod
     def joint_action_dist(self, s) -> Distribution:
@@ -25,11 +26,11 @@ class MultiAgentPolicy(ABC):
                 break
             s = ns
         states, actions, nextstates, rewards = zip(*traj)
-        return {
-            'stateTraj': states,
-            'actionTraj': actions,
-            'rewardTraj': rewards
-        }
+        return Result(**{
+            'state_traj': states,
+            'action_traj': actions,
+            'reward_traj': rewards
+        })
 
 class Policy(ABC):
     
