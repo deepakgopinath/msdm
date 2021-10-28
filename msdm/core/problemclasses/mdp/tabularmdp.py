@@ -1,3 +1,4 @@
+import copy
 import logging
 import numpy as np
 from abc import abstractmethod
@@ -30,6 +31,19 @@ class TabularMarkovDecisionProcess(MarkovDecisionProcess):
     ) -> "TabularMarkovDecisionProcess":
         """
         Constructs a Tabular MDP from matrices.
+        The state and action orderings will be preserved.
+
+        Parameters
+        ----------
+        state_list
+        action_list
+        initial_state_vec
+        transition_matrix
+        reward_matrix
+        nonterminal_state_vec
+        discount_rate
+        action_matrix
+            Optional
         """
         assert len(state_list) \
             == transition_matrix.shape[0] \
@@ -72,8 +86,11 @@ class TabularMarkovDecisionProcess(MarkovDecisionProcess):
             actions=actions,
             initial_state_dist=initial_state_dist,
             is_terminal=is_terminal,
-            discount_rate=discount_rate
+            discount_rate=discount_rate,
+            state_list=copy.copy(state_list),
+            action_list=copy.copy(action_list)
         )
+
 
     @abstractmethod
     def next_state_dist(self, s : HashableState, a : HashableAction) -> FiniteDistribution:

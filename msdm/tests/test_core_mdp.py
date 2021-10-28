@@ -1,4 +1,5 @@
 import unittest
+import random
 import numpy as np
 from frozendict import frozendict
 from msdm.domains import GridWorld
@@ -73,6 +74,16 @@ class CoreTestCase(unittest.TestCase):
         from itertools import product
         from msdm.algorithms import PolicyIteration, ValueIteration
         from msdm.tests.domains import make_russell_norvig_grid
+        rng = random.Random(1284371)
+        def permute_matrix(m, s_ii, a_ii):
+            m = np.stack([m[i] for i in s_ii])
+            m = np.einsum("san->nas", m)
+            m = np.stack([m[i] for i in s_ii])
+            m = np.einsum("nas->san", m)
+            m = np.einsum("san->asn", m)
+            m = np.stack([m[i] for i in a_ii])
+            m = np.einsum("asn->san", m)
+            return m
 
         for dr, sp in product([.99, .9, .5, .1], [.1, .2, .5, .8, 1.0]):
             # Create MDPs and copy them
@@ -89,8 +100,8 @@ class CoreTestCase(unittest.TestCase):
                 nonterminal_state_vec = g1.nonterminal_state_vec,
                 discount_rate = g1.discount_rate
             )
-            pi1 = PolicyIteration().plan_on(g1)
-            pi2 = PolicyIteration().plan_on(g2)
+            vi1 = ValueIteration().plan_on(g1)
+            vi2 = ValueIteration().plan_on(g2)
 
             assert g2.state_list == g1.state_list
             assert id(g2.state_list) != id(g1.state_list)
@@ -106,9 +117,37 @@ class CoreTestCase(unittest.TestCase):
             assert id(g2.nonterminal_state_vec) != id(g1.nonterminal_state_vec)
             assert g2.discount_rate == g1.discount_rate
 
-            assert pi1.initial_value == pi2.initial_value
-            assert pi1.iterations == pi2.iterations
-            assert pi1.converged == pi2.converged
+            assert vi1.initial_value == vi2.initial_value
+            assert vi1.iterations == vi2.iterations
+            assert vi1.converged == vi2.converged
+
+            # test reordering of states and actions
+            s_ii = list(range(len(g1.state_list)))
+            rng.shuffle(s_ii)
+            a_ii = list(range(len(g1.action_list)))
+            rng.shuffle(a_ii)
+            g3 = TabularMarkovDecisionProcess.from_matrices(
+                state_list = [g1.state_list[i] for i in s_ii],
+                action_list = [g1.action_list[i] for i in a_ii],
+                initial_state_vec = np.array([g1.initial_state_vec[i] for i in s_ii]),
+                transition_matrix = permute_matrix(g1.transition_matrix.copy(), s_ii, a_ii),
+                reward_matrix = permute_matrix(g1.reward_matrix.copy(), s_ii, a_ii),
+                nonterminal_state_vec = np.array([g1.nonterminal_state_vec[i] for i in s_ii]),
+                discount_rate = g1.discount_rate
+            )
+            vi3 = ValueIteration().plan_on(g3)
+
+            assert g3.state_list != g1.state_list
+            assert g3.action_list != g1.action_list
+            for s, a, ns in product(g3.state_list, g1.action_list, g2.state_list):
+                if a not in g3.actions(s):
+                    continue
+                assert g3.next_state_dist(s, a).prob(ns) == g1.next_state_dist(s, a).prob(ns)
+                if g3.next_state_dist(s, a).prob(ns) == 0:
+                    continue
+                assert g3.reward(s, a, ns) == g1.reward(s, a, ns)
+                assert np.isclose(vi1.actionvaluefunc[s][a], vi3.actionvaluefunc[s][a], atol=1e-10)
+            assert vi1.iterations == vi3.iterations
 
 if __name__ == '__main__':
     unittest.main()
