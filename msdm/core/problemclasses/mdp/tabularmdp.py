@@ -165,19 +165,17 @@ class TabularMarkovDecisionProcess(MarkovDecisionProcess):
 
     @cached_property
     def transition_matrix(self) -> np.array:
-        ss = self.state_list
         ssi = self.state_index
-        aa = self.action_list
         aai = self.action_index
-        tf = np.zeros((len(ss), len(aa), len(ss)))
-        for s, si in ssi.items():
-            # by definition, terminal states lead only to themselves
-            # if self.is_terminal(s):
-            #     tf[si, :, si] = 1
-            #     continue
-            for a in self._cached_actions(s):
+        tf = np.zeros((
+            len(self.state_list),
+            len(self.action_list),
+            len(self.state_list),
+        ))
+        for s, si in self.state_index.items():
+            for a, ai in self.action_index.items():
                 for ns, nsp in self._cached_next_state_dist(s, a).items():
-                    tf[si, aai[a], ssi[ns]] = nsp
+                    tf[si, ai, ssi[ns]] = nsp
         return tf
 
     @cached_property
@@ -194,20 +192,15 @@ class TabularMarkovDecisionProcess(MarkovDecisionProcess):
 
     @cached_property
     def reward_matrix(self):
-        ss = self.state_list
-        ssi = self.state_index
-        aa = self.action_list
-        aai = self.action_index
-        rf = np.zeros((len(ss), len(aa), len(ss)))
-        for s, si in ssi.items():
-            # by definition, reward from a terminal state is 0
-            # if self.is_terminal(s):
-            #     continue
-            for a in self._cached_actions(s):
-                for ns, p in self._cached_next_state_dist(s, a).items():
-                    if p == 0.:
-                        continue
-                    rf[si, aai[a], ssi[ns]] = self.reward(s, a, ns)
+        rf = np.zeros((
+            len(self.state_list),
+            len(self.action_list),
+            len(self.state_list),
+        ))
+        for s, si in self.state_index.items():
+            for a, ai in self.action_index.items():
+                for ns, nsi in self.state_index.items():
+                    rf[si, ai, nsi] = self.reward(s, a, ns)
         return rf
 
     @cached_property
